@@ -53,6 +53,8 @@ Resultado k6 local:
 | Build Rust `target-cpu=x86-64-v3` | 2.85ms / 3.13ms / 3.05ms | 1.80ms / 1.91ms / 1.92ms | 0 | 474 | 3223.14 / 3181.58 / 3193.48 | rejeitado por instabilidade local; sem ganho sustentado |
 | Volume de sockets em `tmpfs` | 3.65ms | 1.93ms | 0 | 474 | 3115.16 | rejeitado e revertido; piorou p99 |
 | Allocator global `mimalloc` | 3.39ms | 1.89ms | 0 | 474 | 3146.75 | rejeitado e revertido; piorou p99 |
+| Threadpool FD `512` | 3.12ms | 1.89ms | 0 | 474 | 3183.09 | rejeitado; reduziu criação de threads, mas não ganhou score |
+| Threadpool FD `128` | 3.08ms | 1.88ms | 0 | 474 | 3189.85 | rejeitado e revertido; sem ganho sustentado |
 
 Resultado oficial:
 
