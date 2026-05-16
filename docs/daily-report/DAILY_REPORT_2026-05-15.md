@@ -56,6 +56,7 @@ Resultado k6 local:
 | Threadpool FD `512` | 3.12ms | 1.89ms | 0 | 474 | 3183.09 | rejeitado; reduziu criação de threads, mas não ganhou score |
 | Threadpool FD `128` | 3.08ms | 1.88ms | 0 | 474 | 3189.85 | rejeitado e revertido; sem ganho sustentado |
 | `serde_json` com strings emprestadas | 3.46ms | 1.89ms | 0 | 474 | 3138.83 | rejeitado e revertido; piorou p99 |
+| LB `jrblatt/so-no-forevis:v0.0.2` | 3.51ms | 2.17ms | 0 | 474 | 3129.50 | rejeitado e revertido; `v1.0.0` segue melhor localmente |
 
 Resultado oficial:
 
