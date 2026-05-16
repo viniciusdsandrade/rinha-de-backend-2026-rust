@@ -64,6 +64,7 @@ Resultado k6 local:
 | `IVF_BOUNDARY_FULL=false` | 4.39ms | 2.72ms | 0 | 474 | 3035.71 | rejeitado e revertido; preservou erro, mas piorou p99 |
 | 1 API Rust `0.84 CPU/320MB` + LB `0.16 CPU/30MB` | 3.15ms | 1.88ms | 0 | 474 | 3179.40 | rejeitado e revertido; concentrar CPU em uma API piorou p99 contra o baseline 2 APIs |
 | Rust TCP direto `1 CPU/350MB`, sem LB | 3.37ms | 1.90ms | 0 | 474 | 3150.28 | rejeitado e revertido; remover LB/FD passing piorou p99 local |
+| Parser `simd-json` via serde | 3.47ms | 1.90ms | 0 | 474 | 3137.72 | rejeitado e revertido; custo no hot path piorou p99 contra `serde_json` atual |
 
 Resultado oficial:
 
