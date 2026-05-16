@@ -62,6 +62,7 @@ Resultado k6 local:
 | Warmup sintético do índice | 5.02ms | 1.97ms | 0 | 474 | 2977.07 | rejeitado e revertido; aqueceu caminho ruim e piorou p99 |
 | `IVF_BBOX_REPAIR=false` | 4.58ms | 1.93ms | 0 | 479 | 3011.19 | rejeitado e revertido; piorou p99 e erro ponderado |
 | `IVF_BOUNDARY_FULL=false` | 4.39ms | 2.72ms | 0 | 474 | 3035.71 | rejeitado e revertido; preservou erro, mas piorou p99 |
+| 1 API Rust `0.84 CPU/320MB` + LB `0.16 CPU/30MB` | 3.15ms | 1.88ms | 0 | 474 | 3179.40 | rejeitado e revertido; concentrar CPU em uma API piorou p99 contra o baseline 2 APIs |
 
 Resultado oficial:
 
