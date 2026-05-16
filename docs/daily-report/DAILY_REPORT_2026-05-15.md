@@ -81,6 +81,7 @@ Resultado k6 local:
 | `#[inline(always)]` no hot path | 4.09ms | 1.95ms | 0 | 474 | 3065.52 | rejeitado e revertido; codegen piorou p99 |
 | `get_unchecked` no scan int16 | 5.29ms | 2.07ms | 0 | 474 | 2953.88 | rejeitado e revertido; unsafe piorou codegen/p99 |
 | Handler HTTP com buffer fixo sem `Vec::drain` | 3.20ms | 1.91ms | 0 | 474 | 3172.02 | rejeitado e revertido; nao superou baseline |
+| Buffer de leitura HTTP `8192` | 3.93ms | 1.94ms | 0 | 474 | 3082.79 | rejeitado e revertido; aumentar o buffer piorou p99 |
 
 Resultado oficial:
 
