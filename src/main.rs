@@ -363,6 +363,10 @@ struct Timestamp {
 }
 
 fn vectorize(body: &[u8]) -> Option<[f32; DIMENSIONS]> {
+    vectorize_manual(body).or_else(|| vectorize_serde(body))
+}
+
+fn vectorize_serde(body: &[u8]) -> Option<[f32; DIMENSIONS]> {
     let payload: Payload = serde_json::from_slice(body).ok()?;
     let requested = parse_timestamp(&payload.transaction.requested_at)?;
     let mut minutes_since_last = -1.0f32;
@@ -407,6 +411,274 @@ fn vectorize(body: &[u8]) -> Option<[f32; DIMENSIONS]> {
         mcc_risk(&payload.merchant.mcc),
         clamp01(payload.merchant.avg_amount / 10000.0),
     ])
+}
+
+fn vectorize_manual(body: &[u8]) -> Option<[f32; DIMENSIONS]> {
+    let mut cursor = 0usize;
+
+    cursor = next_value(body, cursor)?;
+    scan_json_string(body, &mut cursor)?;
+
+    cursor = next_value(body, cursor)?;
+    skip_object_start(body, &mut cursor);
+    cursor = next_value(body, cursor)?;
+    let amount = scan_f32(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let installments = scan_u32(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let requested = scan_timestamp(body, &mut cursor)?;
+
+    cursor = next_value(body, cursor)?;
+    skip_object_start(body, &mut cursor);
+    cursor = next_value(body, cursor)?;
+    let customer_avg_amount = scan_f32(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let tx_count_24h = scan_u32(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let known_merchants = scan_known_merchants(body, &mut cursor)?;
+
+    cursor = next_value(body, cursor)?;
+    skip_object_start(body, &mut cursor);
+    cursor = next_value(body, cursor)?;
+    let merchant_id = scan_merchant_code(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let mcc_risk = scan_mcc_risk(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let merchant_avg_amount = scan_f32(body, &mut cursor)?;
+
+    cursor = next_value(body, cursor)?;
+    skip_object_start(body, &mut cursor);
+    cursor = next_value(body, cursor)?;
+    let is_online = scan_bool(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let card_present = scan_bool(body, &mut cursor)?;
+    cursor = next_value(body, cursor)?;
+    let km_from_home = scan_f32(body, &mut cursor)?;
+
+    cursor = next_value(body, cursor)?;
+    let mut minutes_since_last = -1.0f32;
+    let mut km_from_last = -1.0f32;
+    cursor = skip_space(body, cursor);
+    if body.get(cursor..cursor + 4) == Some(b"null") {
+    } else {
+        skip_object_start(body, &mut cursor);
+        cursor = next_value(body, cursor)?;
+        let last_ts = scan_timestamp(body, &mut cursor)?;
+        cursor = next_value(body, cursor)?;
+        let last_km = scan_f32(body, &mut cursor)?;
+        let elapsed = ((requested.total_seconds - last_ts.total_seconds).max(0) / 60) as f32;
+        minutes_since_last = clamp01(elapsed / 1440.0);
+        km_from_last = clamp01(last_km / 1000.0);
+    }
+
+    let known_merchant = known_merchants.contains(&merchant_id);
+    let amount_vs_avg = if customer_avg_amount <= 0.0 {
+        if amount <= 0.0 { 0.0 } else { 1.0 }
+    } else {
+        (amount / customer_avg_amount) / 10.0
+    };
+
+    Some([
+        clamp01(amount / 10000.0),
+        clamp01(installments as f32 / 12.0),
+        clamp01(amount_vs_avg),
+        requested.hour as f32 / 23.0,
+        requested.weekday_monday0 as f32 / 6.0,
+        minutes_since_last,
+        km_from_last,
+        clamp01(km_from_home / 1000.0),
+        clamp01(tx_count_24h as f32 / 20.0),
+        if is_online { 1.0 } else { 0.0 },
+        if card_present { 1.0 } else { 0.0 },
+        if known_merchant { 0.0 } else { 1.0 },
+        mcc_risk,
+        clamp01(merchant_avg_amount / 10000.0),
+    ])
+}
+
+fn next_value(body: &[u8], cursor: usize) -> Option<usize> {
+    let colon = body[cursor..].iter().position(|&byte| byte == b':')?;
+    Some(skip_space(body, cursor + colon + 1))
+}
+
+fn skip_space(body: &[u8], mut cursor: usize) -> usize {
+    while matches!(body.get(cursor), Some(b' ' | b'\t' | b'\n' | b'\r')) {
+        cursor += 1;
+    }
+    cursor
+}
+
+fn skip_object_start(body: &[u8], cursor: &mut usize) {
+    *cursor = skip_space(body, *cursor);
+    if body.get(*cursor) == Some(&b'{') {
+        *cursor += 1;
+    }
+}
+
+fn scan_json_string<'a>(body: &'a [u8], cursor: &mut usize) -> Option<&'a [u8]> {
+    *cursor = skip_space(body, *cursor);
+    if body.get(*cursor) != Some(&b'"') {
+        return None;
+    }
+    *cursor += 1;
+    let start = *cursor;
+    while let Some(&byte) = body.get(*cursor) {
+        if byte == b'\\' {
+            return None;
+        }
+        if byte == b'"' {
+            let out = &body[start..*cursor];
+            *cursor += 1;
+            return Some(out);
+        }
+        *cursor += 1;
+    }
+    None
+}
+
+fn scan_f32(body: &[u8], cursor: &mut usize) -> Option<f32> {
+    *cursor = skip_space(body, *cursor);
+    let mut sign = 1.0f64;
+    if body.get(*cursor) == Some(&b'-') {
+        sign = -1.0;
+        *cursor += 1;
+    }
+    let mut seen = false;
+    let mut value = 0f64;
+    while let Some(byte) = body.get(*cursor).copied() {
+        if !byte.is_ascii_digit() {
+            break;
+        }
+        seen = true;
+        value = value * 10.0 + f64::from(byte - b'0');
+        *cursor += 1;
+    }
+    if body.get(*cursor) == Some(&b'.') {
+        *cursor += 1;
+        let mut scale = 0.1f64;
+        while let Some(byte) = body.get(*cursor).copied() {
+            if !byte.is_ascii_digit() {
+                break;
+            }
+            seen = true;
+            value += f64::from(byte - b'0') * scale;
+            scale *= 0.1;
+            *cursor += 1;
+        }
+    }
+    if matches!(body.get(*cursor), Some(b'e' | b'E')) {
+        return None;
+    }
+    seen.then_some((value * sign) as f32)
+}
+
+fn scan_u32(body: &[u8], cursor: &mut usize) -> Option<u32> {
+    *cursor = skip_space(body, *cursor);
+    let mut seen = false;
+    let mut value = 0u32;
+    while let Some(byte) = body.get(*cursor).copied() {
+        if !byte.is_ascii_digit() {
+            break;
+        }
+        seen = true;
+        value = value.checked_mul(10)?.checked_add((byte - b'0') as u32)?;
+        *cursor += 1;
+    }
+    seen.then_some(value)
+}
+
+fn scan_bool(body: &[u8], cursor: &mut usize) -> Option<bool> {
+    *cursor = skip_space(body, *cursor);
+    if body.get(*cursor..*cursor + 4) == Some(b"true") {
+        *cursor += 4;
+        Some(true)
+    } else if body.get(*cursor..*cursor + 5) == Some(b"false") {
+        *cursor += 5;
+        Some(false)
+    } else {
+        None
+    }
+}
+
+fn scan_known_merchants(body: &[u8], cursor: &mut usize) -> Option<[u16; 16]> {
+    *cursor = skip_space(body, *cursor);
+    if body.get(*cursor) != Some(&b'[') {
+        return None;
+    }
+    *cursor += 1;
+    let mut out = [u16::MAX; 16];
+    let mut len = 0usize;
+    loop {
+        *cursor = skip_space(body, *cursor);
+        if body.get(*cursor) == Some(&b']') {
+            *cursor += 1;
+            return Some(out);
+        }
+        let code = scan_merchant_code(body, cursor)?;
+        if len < out.len() {
+            out[len] = code;
+            len += 1;
+        }
+        *cursor = skip_space(body, *cursor);
+        match body.get(*cursor) {
+            Some(b',') => *cursor += 1,
+            Some(b']') => {
+                *cursor += 1;
+                return Some(out);
+            }
+            _ => return None,
+        }
+    }
+}
+
+fn scan_merchant_code(body: &[u8], cursor: &mut usize) -> Option<u16> {
+    let value = scan_json_string(body, cursor)?;
+    if value.len() != 8 || &value[..5] != b"MERC-" {
+        return None;
+    }
+    let hundreds = value[5].checked_sub(b'0')?;
+    let tens = value[6].checked_sub(b'0')?;
+    let ones = value[7].checked_sub(b'0')?;
+    if hundreds > 9 || tens > 9 || ones > 9 {
+        return None;
+    }
+    Some(u16::from(hundreds) * 100 + u16::from(tens) * 10 + u16::from(ones))
+}
+
+fn scan_mcc_risk(body: &[u8], cursor: &mut usize) -> Option<f32> {
+    let value = scan_json_string(body, cursor)?;
+    Some(match value {
+        b"5411" => 0.15,
+        b"5812" => 0.30,
+        b"5912" => 0.20,
+        b"5944" => 0.45,
+        b"7801" => 0.80,
+        b"7802" => 0.75,
+        b"7995" => 0.85,
+        b"4511" => 0.35,
+        b"5311" => 0.25,
+        b"5999" => 0.50,
+        _ => 0.50,
+    })
+}
+
+fn scan_timestamp(body: &[u8], cursor: &mut usize) -> Option<Timestamp> {
+    let value = scan_json_string(body, cursor)?;
+    if value.len() != 20 {
+        return None;
+    }
+    let year = digits(&value[0..4])? as i32;
+    let month = digits(&value[5..7])? as u8;
+    let day = digits(&value[8..10])? as u8;
+    let hour = digits(&value[11..13])? as u8;
+    let minute = digits(&value[14..16])? as u8;
+    let second = digits(&value[17..19])? as u8;
+    let days = days_from_civil(year, month, day);
+    Some(Timestamp {
+        total_seconds: days * 86_400 + hour as i64 * 3600 + minute as i64 * 60 + second as i64,
+        hour,
+        weekday_monday0: ((days + 3) % 7) as u8,
+    })
 }
 
 fn main() {
@@ -813,4 +1085,19 @@ fn read_u8_vec(bytes: &[u8], cursor: &mut usize, len: usize) -> Result<Vec<u8>, 
     let out = bytes[*cursor..*cursor + len].to_vec();
     *cursor += len;
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn manual_vectorizer_matches_serde_for_compact_payload() {
+        let payload = br#"{"id":"tx-3576980410","transaction":{"amount":384.88,"installments":3,"requested_at":"2026-03-11T20:23:35Z"},"customer":{"avg_amount":769.76,"tx_count_24h":3,"known_merchants":["MERC-009","MERC-001","MERC-001"]},"merchant":{"id":"MERC-001","mcc":"5912","avg_amount":298.95},"terminal":{"is_online":false,"card_present":true,"km_from_home":13.7090520965},"last_transaction":{"timestamp":"2026-03-11T14:58:35Z","km_from_current":18.8626479774}}"#;
+
+        let manual = vectorize_manual(payload).expect("manual parser should parse compact official payload");
+        let serde = vectorize_serde(payload).expect("serde parser should parse compact official payload");
+
+        assert_eq!(manual, serde);
+    }
 }
