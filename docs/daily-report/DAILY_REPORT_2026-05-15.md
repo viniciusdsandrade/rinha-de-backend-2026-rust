@@ -87,6 +87,7 @@ Resultado k6 local:
 | `clear()` quando a requisicao ocupa todo o buffer | 5.95ms | 2.09ms | 0 | 474 | 2902.77 | rejeitado e revertido; micro-otimizacao do drain piorou p99 |
 | Segundo reteste build `target-cpu=x86-64-v3` | 3.18ms | 1.92ms | 0 | 474 | 3174.47 | rejeitado e revertido; continua abaixo do baseline calibrado |
 | Build Rust com `lto=thin` | 4.57ms | 1.97ms | 0 | 474 | 3017.64 | rejeitado e revertido; `lto=fat` segue melhor localmente |
+| LB `BUF_SIZE=8192` | 3.12ms / 3.19ms | 1.91ms / 1.91ms | 0 | 474 | 3183.64 / 3174.40 | rejeitado e revertido; primeiro ganho marginal nao reproduziu |
 
 Resultado oficial:
 
