@@ -78,6 +78,7 @@ Resultado k6 local:
 | Stack de thread por conexão `128KB` | 4.30ms | 1.96ms | 0 | 474 | 3044.09 | rejeitado e revertido; stack menor piorou p99 |
 | Remover `TCP_NODELAY` por conexão | 3.04ms | 1.91ms | 0 | 474 | 3194.16 | rejeitado e revertido; quase neutro, mas abaixo do baseline |
 | Reteste build `target-cpu=x86-64-v3` | 3.17ms | 1.90ms | 0 | 474 | 3176.54 | rejeitado e revertido; ganho anterior nao reproduziu |
+| `#[inline(always)]` no hot path | 4.09ms | 1.95ms | 0 | 474 | 3065.52 | rejeitado e revertido; codegen piorou p99 |
 
 Resultado oficial:
 
