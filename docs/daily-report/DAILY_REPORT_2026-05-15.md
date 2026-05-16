@@ -52,6 +52,7 @@ Resultado k6 local:
 | CPU APIs/LB `0.40/0.40/0.20` | 3.26ms | 2.07ms | 0 | 474 | 3163.11 | rejeitado e revertido; APIs mais apertadas pioraram p99 |
 | Build Rust `target-cpu=x86-64-v3` | 2.85ms / 3.13ms / 3.05ms | 1.80ms / 1.91ms / 1.92ms | 0 | 474 | 3223.14 / 3181.58 / 3193.48 | rejeitado por instabilidade local; sem ganho sustentado |
 | Volume de sockets em `tmpfs` | 3.65ms | 1.93ms | 0 | 474 | 3115.16 | rejeitado e revertido; piorou p99 |
+| Allocator global `mimalloc` | 3.39ms | 1.89ms | 0 | 474 | 3146.75 | rejeitado e revertido; piorou p99 |
 
 Resultado oficial:
 
