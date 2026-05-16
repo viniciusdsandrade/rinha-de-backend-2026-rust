@@ -91,6 +91,7 @@ Resultado k6 local:
 | Capacidade inicial do buffer HTTP `4096` com limite `16KB` | 3.86ms | 1.90ms | 0 | 474 | 3090.58 | rejeitado e revertido; reduzir alocacao inicial piorou p99 |
 | `MALLOC_ARENA_MAX=1` nas APIs Rust | 3.49ms | 1.91ms | 0 | 474 | 3134.66 | rejeitado e revertido; restringir arenas da glibc piorou p99 |
 | Parser de framing HTTP com `memchr` | 3.37ms | 2.05ms | 0 | 474 | 3150.29 | rejeitado e revertido; varredura especializada de header piorou p99 |
+| TCP direto com 2 APIs e `SO_REUSEPORT`, sem LB | 4.50ms | 2.38ms | 0 | 474 | 3024.93 | rejeitado e revertido; remover o LB piorou p99 mesmo com duas APIs |
 
 Resultado oficial:
 
