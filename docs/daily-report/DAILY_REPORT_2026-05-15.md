@@ -88,6 +88,7 @@ Resultado k6 local:
 | Segundo reteste build `target-cpu=x86-64-v3` | 3.18ms | 1.92ms | 0 | 474 | 3174.47 | rejeitado e revertido; continua abaixo do baseline calibrado |
 | Build Rust com `lto=thin` | 4.57ms | 1.97ms | 0 | 474 | 3017.64 | rejeitado e revertido; `lto=fat` segue melhor localmente |
 | LB `BUF_SIZE=8192` | 3.12ms / 3.19ms | 1.91ms / 1.91ms | 0 | 474 | 3183.64 / 3174.40 | rejeitado e revertido; primeiro ganho marginal nao reproduziu |
+| Capacidade inicial do buffer HTTP `4096` com limite `16KB` | 3.86ms | 1.90ms | 0 | 474 | 3090.58 | rejeitado e revertido; reduzir alocacao inicial piorou p99 |
 
 Resultado oficial:
 
