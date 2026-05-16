@@ -79,6 +79,7 @@ Resultado k6 local:
 | Remover `TCP_NODELAY` por conexão | 3.04ms | 1.91ms | 0 | 474 | 3194.16 | rejeitado e revertido; quase neutro, mas abaixo do baseline |
 | Reteste build `target-cpu=x86-64-v3` | 3.17ms | 1.90ms | 0 | 474 | 3176.54 | rejeitado e revertido; ganho anterior nao reproduziu |
 | `#[inline(always)]` no hot path | 4.09ms | 1.95ms | 0 | 474 | 3065.52 | rejeitado e revertido; codegen piorou p99 |
+| `get_unchecked` no scan int16 | 5.29ms | 2.07ms | 0 | 474 | 2953.88 | rejeitado e revertido; unsafe piorou codegen/p99 |
 
 Resultado oficial:
 
