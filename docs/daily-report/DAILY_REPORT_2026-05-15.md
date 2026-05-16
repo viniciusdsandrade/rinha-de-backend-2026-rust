@@ -66,6 +66,20 @@ Resultado oficial:
 |---|---|---:|---:|---:|---|
 | `#4644` | `45f8f63` | 1.76ms | 0 | 5754.17 | baseline Rust aceito; ainda abaixo do C++ `andrade-cpp-ivf` |
 
+## Observacoes das stacks melhores
+
+- `fksegundo/rinha-rust`: Rust com indice especialista exato, `mmap`, build-time preprocessing, FD passing, LB proprio e pool de threads com stack menor.
+- `jairoblatt/rinha-2026-rust`: Rust com `monoio`/io_uring, `mimalloc`, AVX2/FMA explicito, parser HTTP manual e `so-no-forevis`.
+- `rafaelcoelhox/eu-sou-o-ze-pamonha`: C com LB proprio, epoll, SCM_RIGHTS, AVX2/FMA e IVF k-means.
+- `atomosdovini/rinha-fraud-cpp`: C++ com io_uring, AVX2/FMA, indice mmap e LB proprio.
+- `muanlartins/rinha-de-backend-2026`: Go com mmap/madvise, raw HTTP, FD passing documentado e warmup.
+
+Leitura para a Rust propria:
+
+- Trocas superficiais de allocator, LB, CPU split e pequenas alocacoes nao foram suficientes.
+- O gap restante parece estar no desenho do runtime de IO e no kernel de busca com pruning, nao em uma flag isolada.
+- Proximas apostas com melhor relacao risco/retorno: parser especializado seguro, warmup de queries e SIMD com early-prune preservando ordenacao.
+
 ## Decisão
 
 - A stack Rust foi registrada oficialmente como submissão paralela.
