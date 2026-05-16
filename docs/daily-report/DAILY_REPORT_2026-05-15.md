@@ -67,6 +67,7 @@ Resultado k6 local:
 | Parser `simd-json` via serde | 3.47ms | 1.90ms | 0 | 474 | 3137.72 | rejeitado e revertido; custo no hot path piorou p99 contra `serde_json` atual |
 | Ordem de dimensões por variância no scan int16 | 4.68ms | 2.00ms | 0 | 474 | 3007.58 | rejeitado e revertido; pruning ficou pior que a ordem natural |
 | LB `so-no-forevis` com `WORKERS=2` | n/a | n/a | n/a | n/a | n/a | rejeitado e revertido; `/ready` ficou sem resposta localmente |
+| `ulimits nofile=65535` em API e LB | 3.19ms | 1.92ms | 0 | 474 | 3173.94 | rejeitado e revertido; sem ganho contra baseline |
 
 Resultado oficial:
 
