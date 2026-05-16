@@ -50,6 +50,7 @@ Resultado k6 local:
 | Fast path sem `Vec` para `nprobe=1` | 3.09ms | 1.86ms | 0 | 474 | 3187.17 | rejeitado e revertido; sem ganho claro |
 | CPU APIs/LB `0.45/0.45/0.10` | 3.24ms | 1.91ms | 0 | 474 | 3166.83 | rejeitado e revertido; LB mais apertado piorou p99 |
 | CPU APIs/LB `0.40/0.40/0.20` | 3.26ms | 2.07ms | 0 | 474 | 3163.11 | rejeitado e revertido; APIs mais apertadas pioraram p99 |
+| Build Rust `target-cpu=x86-64-v3` | 2.85ms / 3.13ms / 3.05ms | 1.80ms / 1.91ms / 1.92ms | 0 | 474 | 3223.14 / 3181.58 / 3193.48 | rejeitado por instabilidade local; sem ganho sustentado |
 
 Resultado oficial:
 
