@@ -19,6 +19,8 @@
 - O smoke test oficial do PR passou para C++ e Rust após novo push.
 - A primeira issue oficial de teste da Rust (`#4638`) foi rejeitada por memória: `170MB + 170MB + 30MB = 370MB`.
 - Correção aplicada na composição Rust: APIs em `160MB` cada e LB em `30MB`, totalizando o limite oficial de `350MB`.
+- Nova issue oficial de teste: `https://github.com/zanfranceschi/rinha-de-backend-2026/issues/4644`.
+- Resultado oficial Rust: `p99=1.76ms`, erro `0%`, `final_score=5754.17`, commit `45f8f63`.
 
 ## Experimento local
 
@@ -47,10 +49,17 @@ Resultado k6 local:
 | Respostas HTTP como fatias estáticas | 5.61ms | 2.38ms | 0 | 474 | 2928.31 | rejeitado e revertido; piorou p99 |
 | Fast path sem `Vec` para `nprobe=1` | 3.09ms | 1.86ms | 0 | 474 | 3187.17 | rejeitado e revertido; sem ganho claro |
 | CPU APIs/LB `0.45/0.45/0.10` | 3.24ms | 1.91ms | 0 | 474 | 3166.83 | rejeitado e revertido; LB mais apertado piorou p99 |
+| CPU APIs/LB `0.40/0.40/0.20` | 3.26ms | 2.07ms | 0 | 474 | 3163.11 | rejeitado e revertido; APIs mais apertadas pioraram p99 |
+
+Resultado oficial:
+
+| Issue | Commit | p99 oficial | HTTP/errors | final_score oficial | Leitura |
+|---|---|---:|---:|---:|---|
+| `#4644` | `45f8f63` | 1.76ms | 0 | 5754.17 | baseline Rust aceito; ainda abaixo do C++ `andrade-cpp-ivf` |
 
 ## Decisão
 
 - A stack Rust foi registrada oficialmente como submissão paralela.
 - A correção de memória elimina o bloqueio objetivo da primeira issue oficial.
-- Ainda não ameaça a submissão C++ atual, porque o p99 local permanece bem acima do C++ baseline.
+- A Rust já tem baseline oficial válido, mas ainda não ameaça a submissão C++ atual, porque o p99 oficial está acima do C++ baseline.
 - Próximo foco técnico: reduzir overhead de thread por conexão ou implementar SIMD no caminho IVF.
