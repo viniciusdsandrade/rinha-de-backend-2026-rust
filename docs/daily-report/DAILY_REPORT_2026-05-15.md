@@ -68,6 +68,7 @@ Resultado k6 local:
 | Ordem de dimensões por variância no scan int16 | 4.68ms | 2.00ms | 0 | 474 | 3007.58 | rejeitado e revertido; pruning ficou pior que a ordem natural |
 | LB `so-no-forevis` com `WORKERS=2` | n/a | n/a | n/a | n/a | n/a | rejeitado e revertido; `/ready` ficou sem resposta localmente |
 | `ulimits nofile=65535` em API e LB | 3.19ms | 1.92ms | 0 | 474 | 3173.94 | rejeitado e revertido; sem ganho contra baseline |
+| Memória API/LB `165/165/20MB` | 3.43ms | 1.91ms | 0 | 474 | 3142.81 | rejeitado e revertido; LB com menos memória piorou p99 |
 
 Resultado oficial:
 
