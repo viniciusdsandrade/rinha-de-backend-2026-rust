@@ -73,6 +73,7 @@ Resultado k6 local:
 | `MAX_PENDING=2KB` | 4.71ms | 1.96ms | 0 | 474 | 3004.44 | rejeitado e revertido; buffer menor piorou p99 |
 | `mmap` do `index.bin` no Rust | 3.11ms | 1.87ms | 0 | 474 | 3185.01 | rejeitado e revertido; reduziu RSS inicial, mas nao bateu o baseline local |
 | Repair window `2..3` | 3.27ms | 1.88ms | 0 | 468 | 3169.97 | rejeitado e revertido; melhorou erro local, mas p99 derrubou score |
+| Repair window `1..3` | 3.20ms | 1.90ms | 0 | 463 | 3185.95 | rejeitado e revertido; melhorou erro local, mas p99 ainda ficou abaixo do baseline |
 
 Resultado oficial:
 
