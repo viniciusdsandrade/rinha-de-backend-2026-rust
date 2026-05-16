@@ -59,6 +59,7 @@ Resultado k6 local:
 | LB `jrblatt/so-no-forevis:v0.0.2` | 3.51ms | 2.17ms | 0 | 474 | 3129.50 | rejeitado e revertido; `v1.0.0` segue melhor localmente |
 | Build Rust Haswell explícito | 3.50ms | 1.91ms | 0 | 474 | 3133.80 | rejeitado e revertido; piorou p99 |
 | Scan IVF AVX2 simples sem early-prune | 3.15ms | 1.81ms | 0 | 474 | 3179.39 | rejeitado e revertido; precisão ok, mas p99 não ganhou |
+| Warmup sintético do índice | 5.02ms | 1.97ms | 0 | 474 | 2977.07 | rejeitado e revertido; aqueceu caminho ruim e piorou p99 |
 
 Resultado oficial:
 
