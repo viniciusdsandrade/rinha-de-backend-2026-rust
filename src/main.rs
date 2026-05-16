@@ -1,11 +1,16 @@
-use libc::{POLLIN, poll, pollfd};
+use libc::{
+    CMSG_DATA, CMSG_FIRSTHDR, CMSG_SPACE, MSG_CMSG_CLOEXEC, POLLIN, SCM_RIGHTS, SOL_SOCKET, c_void,
+    cmsghdr, iovec, msghdr, poll, pollfd, recvmsg,
+};
 use serde::Deserialize;
 use std::env;
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::os::fd::AsRawFd;
+use std::mem;
+use std::net::TcpStream;
+use std::os::fd::{AsRawFd, FromRawFd, RawFd};
 use std::os::unix::fs::PermissionsExt;
-use std::os::unix::net::{UnixListener, UnixStream};
+use std::os::unix::net::UnixListener;
 use std::path::Path;
 use std::sync::Arc;
 use std::thread;
@@ -428,6 +433,16 @@ fn run_server(
     let listener = UnixListener::bind(path)?;
     listener.set_nonblocking(true)?;
     fs::set_permissions(path, fs::Permissions::from_mode(0o777))?;
+
+    {
+        let ctrl_path = format!("{socket_path}.ctrl");
+        let index = Arc::clone(&index);
+        let config = Arc::clone(&config);
+        thread::spawn(move || {
+            let _ = run_control_socket(&ctrl_path, index, config);
+        });
+    }
+
     loop {
         match listener.accept() {
             Ok((stream, _)) => {
@@ -452,8 +467,36 @@ fn run_server(
     }
 }
 
-fn handle_stream(
-    mut stream: UnixStream,
+fn run_control_socket(
+    ctrl_path: &str,
+    index: Arc<IvfIndex>,
+    config: Arc<IvfConfig>,
+) -> std::io::Result<()> {
+    let path = Path::new(ctrl_path);
+    if path.exists() {
+        fs::remove_file(path)?;
+    }
+    let listener = UnixListener::bind(path)?;
+    fs::set_permissions(path, fs::Permissions::from_mode(0o777))?;
+    loop {
+        let (conn, _) = listener.accept()?;
+        loop {
+            let Some(fd) = receive_fd(conn.as_raw_fd()) else {
+                break;
+            };
+            let index = Arc::clone(&index);
+            let config = Arc::clone(&config);
+            thread::spawn(move || {
+                let stream = unsafe { TcpStream::from_raw_fd(fd) };
+                let _ = stream.set_nodelay(true);
+                let _ = handle_stream(stream, index, config);
+            });
+        }
+    }
+}
+
+fn handle_stream<S: Read + Write>(
+    mut stream: S,
     index: Arc<IvfIndex>,
     config: Arc<IvfConfig>,
 ) -> std::io::Result<()> {
@@ -472,6 +515,37 @@ fn handle_stream(
             stream.write_all(response.as_slice())?;
         }
     }
+}
+
+fn receive_fd(socket_fd: RawFd) -> Option<RawFd> {
+    let mut byte = 0u8;
+    let mut iov = iovec {
+        iov_base: (&mut byte as *mut u8).cast::<c_void>(),
+        iov_len: mem::size_of::<u8>(),
+    };
+    let mut control = vec![0u8; unsafe { CMSG_SPACE(mem::size_of::<RawFd>() as u32) as usize }];
+    let mut message: msghdr = unsafe { mem::zeroed() };
+    message.msg_iov = &mut iov;
+    message.msg_iovlen = 1;
+    message.msg_control = control.as_mut_ptr().cast::<c_void>();
+    message.msg_controllen = control.len();
+
+    let received = unsafe { recvmsg(socket_fd, &mut message, MSG_CMSG_CLOEXEC) };
+    if received <= 0 {
+        return None;
+    }
+
+    let cmsg = unsafe { CMSG_FIRSTHDR(&message) };
+    if cmsg.is_null() {
+        return None;
+    }
+    let header: &cmsghdr = unsafe { &*cmsg };
+    if header.cmsg_level != SOL_SOCKET || header.cmsg_type != SCM_RIGHTS {
+        return None;
+    }
+    let data = unsafe { CMSG_DATA(cmsg).cast::<RawFd>() };
+    let fd = unsafe { *data };
+    (fd >= 0).then_some(fd)
 }
 
 fn process_one(input: &mut Vec<u8>, index: &IvfIndex, config: &IvfConfig) -> Option<Vec<u8>> {
