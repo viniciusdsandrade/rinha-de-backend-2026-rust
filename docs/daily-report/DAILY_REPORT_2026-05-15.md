@@ -85,6 +85,7 @@ Resultado k6 local:
 | `seccomp:unconfined` nas APIs | 4.12ms | 1.95ms | 0 | 474 | 3062.20 | rejeitado e revertido; liberar seccomp nas APIs piorou p99 local |
 | `IVF_FULL_NPROBE=2` com `FAST=1` | 3.21ms | 1.91ms | 0 | 474 | 3171.04 | rejeitado e revertido; segundo cluster no reparo nao superou baseline |
 | `clear()` quando a requisicao ocupa todo o buffer | 5.95ms | 2.09ms | 0 | 474 | 2902.77 | rejeitado e revertido; micro-otimizacao do drain piorou p99 |
+| Segundo reteste build `target-cpu=x86-64-v3` | 3.18ms | 1.92ms | 0 | 474 | 3174.47 | rejeitado e revertido; continua abaixo do baseline calibrado |
 
 Resultado oficial:
 
