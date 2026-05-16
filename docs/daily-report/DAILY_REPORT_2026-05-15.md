@@ -65,6 +65,7 @@ Resultado k6 local:
 | 1 API Rust `0.84 CPU/320MB` + LB `0.16 CPU/30MB` | 3.15ms | 1.88ms | 0 | 474 | 3179.40 | rejeitado e revertido; concentrar CPU em uma API piorou p99 contra o baseline 2 APIs |
 | Rust TCP direto `1 CPU/350MB`, sem LB | 3.37ms | 1.90ms | 0 | 474 | 3150.28 | rejeitado e revertido; remover LB/FD passing piorou p99 local |
 | Parser `simd-json` via serde | 3.47ms | 1.90ms | 0 | 474 | 3137.72 | rejeitado e revertido; custo no hot path piorou p99 contra `serde_json` atual |
+| Ordem de dimensões por variância no scan int16 | 4.68ms | 2.00ms | 0 | 474 | 3007.58 | rejeitado e revertido; pruning ficou pior que a ordem natural |
 
 Resultado oficial:
 
