@@ -46,6 +46,7 @@ Resultado k6 local:
 | Rust IVF com limite oficial de 350MB | 3.03ms | 2.01ms | 0 | 474 | 3196.16 | memória corrigida, elegível para nova execução oficial |
 | Respostas HTTP como fatias estáticas | 5.61ms | 2.38ms | 0 | 474 | 2928.31 | rejeitado e revertido; piorou p99 |
 | Fast path sem `Vec` para `nprobe=1` | 3.09ms | 1.86ms | 0 | 474 | 3187.17 | rejeitado e revertido; sem ganho claro |
+| CPU APIs/LB `0.45/0.45/0.10` | 3.24ms | 1.91ms | 0 | 474 | 3166.83 | rejeitado e revertido; LB mais apertado piorou p99 |
 
 ## Decisão
 
