@@ -70,6 +70,7 @@ Resultado k6 local:
 | `ulimits nofile=65535` em API e LB | 3.19ms | 1.92ms | 0 | 474 | 3173.94 | rejeitado e revertido; sem ganho contra baseline |
 | Memória API/LB `165/165/20MB` | 3.43ms | 1.91ms | 0 | 474 | 3142.81 | rejeitado e revertido; LB com menos memória piorou p99 |
 | LB `BUF_SIZE=2048` | 3.37ms | 1.92ms | 0 | 474 | 3150.11 | rejeitado e revertido; `4096` segue melhor localmente |
+| `MAX_PENDING=2KB` | 4.71ms | 1.96ms | 0 | 474 | 3004.44 | rejeitado e revertido; buffer menor piorou p99 |
 
 Resultado oficial:
 
