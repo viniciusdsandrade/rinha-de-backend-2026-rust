@@ -55,6 +55,7 @@ Resultado k6 local:
 | Allocator global `mimalloc` | 3.39ms | 1.89ms | 0 | 474 | 3146.75 | rejeitado e revertido; piorou p99 |
 | Threadpool FD `512` | 3.12ms | 1.89ms | 0 | 474 | 3183.09 | rejeitado; reduziu criação de threads, mas não ganhou score |
 | Threadpool FD `128` | 3.08ms | 1.88ms | 0 | 474 | 3189.85 | rejeitado e revertido; sem ganho sustentado |
+| `serde_json` com strings emprestadas | 3.46ms | 1.89ms | 0 | 474 | 3138.83 | rejeitado e revertido; piorou p99 |
 
 Resultado oficial:
 
