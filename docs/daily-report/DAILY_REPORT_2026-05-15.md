@@ -82,6 +82,7 @@ Resultado k6 local:
 | `get_unchecked` no scan int16 | 5.29ms | 2.07ms | 0 | 474 | 2953.88 | rejeitado e revertido; unsafe piorou codegen/p99 |
 | Handler HTTP com buffer fixo sem `Vec::drain` | 3.20ms | 1.91ms | 0 | 474 | 3172.02 | rejeitado e revertido; nao superou baseline |
 | Buffer de leitura HTTP `8192` | 3.93ms | 1.94ms | 0 | 474 | 3082.79 | rejeitado e revertido; aumentar o buffer piorou p99 |
+| `seccomp:unconfined` nas APIs | 4.12ms | 1.95ms | 0 | 474 | 3062.20 | rejeitado e revertido; liberar seccomp nas APIs piorou p99 local |
 
 Resultado oficial:
 
