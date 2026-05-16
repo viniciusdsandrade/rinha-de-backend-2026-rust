@@ -76,6 +76,7 @@ Resultado k6 local:
 | Repair window `1..3` | 3.20ms | 1.90ms | 0 | 463 | 3185.95 | rejeitado e revertido; melhorou erro local, mas p99 ainda ficou abaixo do baseline |
 | CPU APIs/LB `0.43/0.43/0.14` | 3.20ms | 1.91ms | 0 | 474 | 3171.64 | rejeitado e revertido; ponto intermediario ainda piorou p99 |
 | Stack de thread por conexão `128KB` | 4.30ms | 1.96ms | 0 | 474 | 3044.09 | rejeitado e revertido; stack menor piorou p99 |
+| Remover `TCP_NODELAY` por conexão | 3.04ms | 1.91ms | 0 | 474 | 3194.16 | rejeitado e revertido; quase neutro, mas abaixo do baseline |
 
 Resultado oficial:
 
