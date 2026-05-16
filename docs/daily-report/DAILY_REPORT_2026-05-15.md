@@ -60,6 +60,7 @@ Resultado k6 local:
 | Build Rust Haswell explícito | 3.50ms | 1.91ms | 0 | 474 | 3133.80 | rejeitado e revertido; piorou p99 |
 | Scan IVF AVX2 simples sem early-prune | 3.15ms | 1.81ms | 0 | 474 | 3179.39 | rejeitado e revertido; precisão ok, mas p99 não ganhou |
 | Warmup sintético do índice | 5.02ms | 1.97ms | 0 | 474 | 2977.07 | rejeitado e revertido; aqueceu caminho ruim e piorou p99 |
+| `IVF_BBOX_REPAIR=false` | 4.58ms | 1.93ms | 0 | 479 | 3011.19 | rejeitado e revertido; piorou p99 e erro ponderado |
 
 Resultado oficial:
 
