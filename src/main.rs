@@ -957,6 +957,39 @@ fn mcc_risk(mcc: &str) -> f32 {
 }
 
 fn should_repair_extreme(frauds: u8, query: &[f32; DIMENSIONS]) -> bool {
+    let old_last_transaction = query[5] >= 0.99;
+    if old_last_transaction {
+        if frauds == 0 {
+            return query[0] >= 0.08
+                && query[0] <= 0.29
+                && query[1] >= 0.25
+                && query[1] <= 0.59
+                && query[2] >= 0.40
+                && query[6] >= 0.03
+                && query[6] <= 0.29
+                && query[7] >= 0.03
+                && query[7] <= 0.41
+                && query[8] <= 0.56
+                && query[13] >= 0.008
+                && query[13] <= 0.026;
+        }
+
+        if frauds == 5 {
+            return query[0] >= 0.07
+                && query[0] <= 0.48
+                && query[1] >= 0.33
+                && query[1] <= 0.76
+                && query[2] >= 0.50
+                && query[6] >= 0.07
+                && query[6] <= 0.53
+                && query[7] >= 0.06
+                && query[7] <= 0.49
+                && query[8] >= 0.40
+                && query[8] <= 0.70
+                && query[13] <= 0.028;
+        }
+    }
+
     let no_last_transaction = query[5] < -0.5 && query[6] < -0.5;
     if !no_last_transaction {
         return false;
